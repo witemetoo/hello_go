@@ -290,6 +290,140 @@ func fetch(url string,ch chan<- string){
 	每个源文件都是以包的声明语句开始的，用来指名包的名字。当包
 	被导入时
 
+	包的初始化
+	包的初始化首先就是解决包级变量的依赖顺序，然后按照包级变量出现
+	的顺序依次初始化。如果包中含多个.go文件 go 语言的构建工具首先将文件根据
+	文件名排序。然后依次调用编译器进行编译
+
+	作用域
+	一个声明语句将程序中的尸体和一个名字关联
+	声明语句的作用域是指源代码中可以有效使用这个名字的范围
+	语法块是由华括号包含的一系列语句
+
+
+	第三章 基础数据类型
+	go 语言将数据类型分为四类：基础类型、复合类型、引用类型、接口类型
+	int8 int16 int32 int64四种截然不同大小的有符号整数类型
+	uint8 uint16 uint32 uint64四种无符号整数类型
+
+	尽管go 提供了无符号数和运算，即使数值本身不可能出现负数还是倾向于使用有符号的int
+	类型，就像数组长度那样 
+
+	浮点数
+	go 语言提供了两种精度的浮点数，float32和float64
+	math.MaxFloat32 表示float32能表示最大的数
+	math.MaxFloat64 表示float64能表示最大的数
+	复数
+	go语言提供了两种精度的复数类型：complex64和coplex128
+
+	布尔类型
+	and or 有短路行为：如果运算符左边值已经可以确定整个布尔类型的
+	值，那么运算符右边的值将不在被求值
+	下面表达式是安全的
+	x !="" && s[0] == 'x'
+	布尔类型不会隐式的转化为 0、1
+	func btoi(b bool) int{
+		if b{
+			return 1
+		}
+		return 0
+	}
+
+	字符串
+	字符串是一个不可以改变的字节序列
+	字符串的值是不可变的：一个字符串包含的字节序列永远不会被改变
+	对于普通中文字符串 每个汉字占用3个字节
+	对于rune 汉字占用一个字节 其他字符也是占用一个字节
+
+
+	字符串面值
+	字符串值也可以用字符串面值方式编写，
 	
+	字符串和byte切片
+	标准库中有四个包对字符串处理：
+	bytes:
+	string:包含许多如字符串查询、替换、比较、拆分、截断、合并
+	strconv 提供布尔类型、整数类型、浮点数类型、对应的字符串转化
+
+	常量
+	常量表达式的值是在编译期计算的，而不是在运行期。每种的潜在都是基础类型：
+	boolen string 或者数字
+	常量生成器：iota 类似于c中的枚举类型
+	在一个const声明语句中，在第一个声明常量所在的行，iota将会被置为0
+	然后每个有常量声明的行加1
+
+
 
 */
+func comma(s string) string{
+	n := len(s)
+	if n <= 3{
+		return s 
+	}
+	return comma(s[:n-3] + "," + s[n-3:])
+}
+
+type Weekday int
+const (
+	Sunday Weekday = iota
+	Monday
+	Tuesday
+	Wednesday
+	Thursday
+	Friday
+)
+
+/*
+	复合类型数据
+	数组：
+	数组是由一个由固定长度的特定类型元素组成的序列
+	因为数组长度是固定的，所以在go 语言中常使用的是slice
+
+	var a [3]int array of 3 integers
+	
+	当调用一个函数的时候，函数的每个调用参数将会被赋值给函数内部的
+	参数变量，所以函数接收的是复制的副本，并不是调用的变量，
+	所以函数参数传递的机制导致传递大的数组类型是低效的
+
+	slice（切片）
+	切片代表变长的序列，
+
+	内置的make函数创建一个指定元素类型、长度和容量的slice
+	容量部分可以省略
+	append 函数用于向slice追加元素
+
+	在循环中使用使用append函数 构建一个由九个rune 字符构成
+	的slice 我们可以通过go语言内置的[]rune("hello,世界")
+	转化操作完成。append 函数理解slice
+	
+
+
+
+*/
+var runes []rune
+ for _,r := range "hello world"{
+	 runes = append(runes,r)
+ }
+ fmt.Printf("%q\n", runes)
+
+var str string
+str = "hello world"
+ch := str[0]
+len := len(str)
+
+func appendInt(x []int, y int) []int{
+	var z []int
+	zlen := len(x) + 1
+	if zlen <= cap(x){
+		z = x[:zlen]
+	}else {
+		zcap := zlen
+		if zcap < 2 * len(x){
+			zcap = 2 * len(x)
+		}
+		z = make([]int,zlen,zcap)
+		copy(z,x)
+	}
+	z[len(x)] = y
+	return z
+}
