@@ -387,8 +387,15 @@ const (
 
 	slice（切片）
 	切片代表变长的序列，
+	slice 底层引用了数组对象
+	一个slice由三部分组成，指针、长度、容量 slice之间不能进行比较 对于
+	字节类型 则可以通过标准库 bytes.Equal来进行比较
 
 	内置的make函数创建一个指定元素类型、长度和容量的slice
+	在底层make 创建了一个匿名的数组变量，然后返回一个slice；
+	之友通过返回的slice才能一用底层匿名的数组变量
+	make([]T,len)
+	make([]T, len, cap)
 	容量部分可以省略
 	append 函数用于向slice追加元素
 
@@ -426,4 +433,59 @@ func appendInt(x []int, y int) []int{
 	}
 	z[len(x)] = y
 	return z
+}
+
+/*
+nonempty 函数
+*/
+
+func nonempty(strings []string) []string{
+	i := 0
+	for _,s := range strings{
+		if s!= ""{
+			strings[i] = s
+			i ++
+		}
+	}
+	return strings[:i]
+}
+
+/*
+	map 
+	内置的make 函数可以创建一个map
+	ages := make(map[string]int)
+	下面两种初始化相同的map
+	ages := make(map[string]int)
+	ages["alice"] = 31
+	ages["charlie"] = 34
+
+
+	ages := map[string]int{
+		"alice":31,
+		"charlie":34,
+	}
+	map 中的元素并不是一个变量，我们不能对map的元素进行取值操作
+	_= &ages["bob"]
+
+	if age,ok := ages["bob"]; !ok{}
+
+*/
+
+import "sort"
+
+var names []string
+for name := range ages{
+	fmt.Printf("%s\t%d\n", name,ages[name])
+}
+
+func equal(x,y map[string]int) bool{
+	if len(x) != len(y){
+		return false
+	}
+	for k,xv = range x{
+		if yv,ok := y[k]; !ok || yv != xv{ // 判断在y中是否存在 k if !ok 或者 存在但value值不为xv
+			return false
+		}
+	}
+	return true
 }
