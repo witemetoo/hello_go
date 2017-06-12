@@ -27,6 +27,11 @@ import (
 	"net/http"
 	"os"
 	"time"
+	"bufio"
+	"unicode/utf8"
+	"unicode"
+	"encoding/json"
+	"log"
 )
 // := 短变量声明
 func main(){
@@ -489,3 +494,228 @@ func equal(x,y map[string]int) bool{
 	}
 	return true
 }
+
+/*
+	创建一个容量为len(ages) 长度的slice
+	names := make([]string,0,len(ages))
+
+
+*/
+
+func dedup(){
+	seen := make(map[string]bool)
+	input := bufio.NewScanner(os.Stdin)
+	for input.Scan(){
+		line := input.Text()
+		if !seen[line]{
+			seen[line] = true
+			fmt.Println(line)
+		}
+	}
+	if err := input.Err(); err != nil{
+		fmt.Fprintf(os.Stderr,"dedup:%v\n",err)
+		os.Exit(1)
+	}
+}
+
+/*
+有时候我们需要一个map 或 set的key是slice类型 但是map的key必须是
+可以比较的类型，但 slice并不满足这个条件
+*/
+
+import (
+	"bufio"
+	"fmt"
+	"io"
+	"os"
+	"unicode"
+	"unicode/utf8"
+)
+
+func main1(){
+	counts := make(map[rune]int)
+	var utflen [utf8.UTFMax + 1]int 
+	invalid := 0
+	in := bufio.NewReader(os.Stdin)
+	for{
+		r,n,err := in.ReadRune()
+		if err == io.EOF{
+			break
+		}
+		if err != nil{
+			fmt.Fprintf(os.Stderr, "char count:%v\n", err)
+			os.Exit(1)
+		}
+		if r == unicode.ReplacementChar && n == 1{
+			invalid ++
+			continue
+		}
+		fmt.Printf("rune\tcount\n")
+		for c,n := range counts{
+
+		}
+	}
+
+}
+/*
+	结构体的访问
+	是一种聚合的数据类型，是由零个或者多个任意类型的值
+	聚合成的实体。每个值称为结构体的成员
+	dilbert.Salary == 5000
+	position := &dilbert.Position
+	*position = "senior" + *position
+
+	var employeeOfTheMonth *Employee = &dilbert
+	employeeOfTheMoneth.Position += " (proactive team player)"
+
+
+	一个命名为s的结构体将不能包含s类型的成员：因为一个聚合的值不能包含它自身
+	但是s类型的结构体可以包含*s指针类型的成员,因此可以创建递归的数据结构
+
+*/
+type Employee struct {
+	ID int
+	Name string
+	Address string
+	DoB time.Time
+	Position string
+	Salary int
+	ManagerID int
+}
+var dilbert Employee
+
+// 使用二叉树来实现一个插入排序
+type tree struct {
+	value int
+	left,right *tree
+}
+
+func Sort(value []int){
+	var root * tree
+	for _,v := range values{
+		root = add(root ,v)
+	}
+	appendValues(values[:0], root)
+}
+
+func appendValues(values []int, t *tree){
+	if t != nil{
+		values = appendValues(values, t.left)
+		values = append(values, t.value)
+		values = appendValues(values,t.right)
+	}
+}
+
+func add(t *tree, value int) *tree{
+	if t == nil{
+		t = new(tree)
+		t.value = value
+		return t
+	}
+	if value < t.value{
+		t.left = add(t.left,value)
+	}else{
+		t.right = add(t.right, value)
+	}
+	return t
+}
+/*
+	go 语言中的new 和 make是两个用于分配内存的原语
+	new只分配内存 make用于slice、map、和channel的初始化
+
+	new 函数并不初始化内存，只是将其置零 new(T) 荟蔚T类型的项目
+	分配被志零的存储 并返回它的地址
+
+	go 语言中没有c++中的构造函数，对象的创建为一个全局的创建函数来完成
+	func NewRect(x,y,witch,height float64) *Rect{
+		return &Rect(x,y,width,height)
+	}
+
+	make 函数make(T, args) 只用来创建slice，map和channel,
+	并返回一个初始化 类型为T的值 
+
+*/
+
+type line struct{
+	x int
+}
+type plane struct {
+	line
+	y int
+}
+type space struct{
+	plane
+	z int
+}
+
+t := space{plane{line{3},5},7}
+
+/*
+	结构体嵌入和匿名成员
+	go 语言特性只声明一个成员对应的数据类型而不指定成员的名字
+	这类成员就叫匿名成员 匿名成员的数据类型必须是命名的类型或者
+	指向一个命名的类型的指针
+	
+
+*/
+type Point struct {
+	x, y int
+}
+type circle struct{
+	center Point
+	Radius int
+}
+
+type Wheel struct{
+	circle circle
+	Spokes int
+}
+var w Wheel
+w.circle.center.x = 8
+w.circle.center.y = 8
+/*
+	匿名成员访问
+*/
+type circle struct{
+	Point
+	Radius int
+}
+type wheel struct{
+	circle
+	Spokes int
+}
+
+var w wheel
+w.x = 8
+
+/*
+	json 
+	基础类型可以通过json的数组和对象进行递归组合
+	一个json数组是一个有序的值序列
+*/
+type Movie struct {
+	Title string
+	Year int 'json:"released"'
+	Color bool 'json:"color, omitempty"'
+	Actors []string
+}
+
+var mobies = []Movie{
+	{
+		Title:"casablanca",
+		Year:"1942",
+		Coloe:false,
+		Actors:[]string{"Humphrey Bogart", "Ingrid Bergman"}
+	}
+}
+/*
+	将类似movies的结构体 slice转为json的过程叫编组
+	编组通过调用json.Marshal函数完成
+	在编码时、默认使用go语言结构体的成员名字作为json的对象
+	只有导出的结构体成员才会被编码
+*/
+data,err := json.Marshal(movies)
+if err!= nil{
+	log.Fatal("json marshaling failed: %s",err)
+}
+fmt.Printf("%s\n",data)
